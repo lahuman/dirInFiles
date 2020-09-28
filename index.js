@@ -16,8 +16,10 @@ if (!searchPahth) {
 }
 
 
-glob(searchPahth, {  matchBase: true, nodir: true, mark: true, realpath: true, dot: true }, function (er, files) {
-    // console.log(files)
+
+// glob(searchPahth, { nodir: true, mark: true, realpath: true }, function (er, files) {
+glob("**/*", {  nodir: true, mark: true, realpath: true }, function (er, files) {
+    console.log(files)
     files.forEach(f => {
         // console.log(f)
         // console.log(fs.lstatSync(f).isDirectory())

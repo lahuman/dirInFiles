@@ -29,8 +29,8 @@ const liteMd5 = (filePath) => {
 }
 
 
-// glob(searchPahth, { nodir: true, mark: true, realpath: true }, function (er, files) {
-glob("**/*", { nodir: true, mark: true, realpath: true }, function (er, files) {
+glob(searchPahth, { nodir: true, mark: true, realpath: true }, function (er, files) {
+// glob("**/*", { nodir: true, mark: true, realpath: true }, function (er, files) {
     console.log("BEGIN SEARCH FILES");
     files.forEach(f => {
         // console.log(f)

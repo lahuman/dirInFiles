@@ -24,14 +24,5 @@ $> node index.js **/*
 
 - md5 hash 파일 처리는 청크(Chunk) 사이즈 처리를 해서 성능을 개선한다.
   - 초기 100000byte (0.1MB) 만 로드 하여 hash 처리 후 비교 한다.
-
-```
-// liteMd5는 0.1MB만 md5 hash로 변환한다.
-const FIRST_SIZE = 100000;
-const liteMd5 = (filePath) => {
-  const res = fs.openSync(filePath, 'r');
-  let buffer = Buffer.alloc(FIRST_SIZE);
-  fs.readSync(res, buffer, 0, FIRST_SIZE, 0,);
-  return md5(buffer);
-}
-```
+  - 용량이 0.2MB 이상인 경우만 청크 처리 하고, 이하일 경우에는 전체를 앞과 뒤의 버퍼만 읽어서 hash 처리 한다.
+- 파일 스캔시 프로그레스 처리

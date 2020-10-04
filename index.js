@@ -3,6 +3,8 @@ const glob = require('glob');
 const path = require("path");
 const md5File = require('md5-file')
 const md5 = require('md5');
+const cliProgress = require('cli-progress');
+
 
 
 const fileInfos = {};
@@ -17,28 +19,37 @@ if (!searchPahth) {
 }
 
 
-const FIRST_SIZE = 100000;
+const BUFFER_SIZE = 100000;
 var hrstart = process.hrtime()
 
 const liteMd5 = (filePath) => {
-    const res = fs.openSync(filePath, 'r');
-
-    let buffer = Buffer.alloc(FIRST_SIZE);
-    fs.readSync(res, buffer, 0, FIRST_SIZE, 0,);
-    return md5(buffer);
+    const st = fs.statSync(filePath);
+    
+    // 대용량의 경우만 처리
+    if(st.size > (BUFFER_SIZE*2)){
+        let firstBuffer = Buffer.alloc(BUFFER_SIZE);
+        let lastBuffer = Buffer.alloc(BUFFER_SIZE);
+        const res = fs.openSync(filePath, 'r');
+        fs.readSync(res, firstBuffer, 0, BUFFER_SIZE, 0);
+        fs.readSync(res, lastBuffer, 0, BUFFER_SIZE, (st.size - BUFFER_SIZE));
+        return md5(firstBuffer + lastBuffer);
+    }else{
+        return md5File.sync(filePath)
+    }
 }
 
 
+console.log("BEGIN SEARCH FILES");
+const bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+
 glob(searchPahth, { nodir: true, mark: true, realpath: true }, function (er, files) {
 // glob("**/*", { nodir: true, mark: true, realpath: true }, function (er, files) {
-    console.log("BEGIN SEARCH FILES");
-    files.forEach(f => {
-        // console.log(f)
-        // console.log(fs.lstatSync(f).isDirectory())
-        // if(fs.lstatSync(f).isDirectory()) return true;
+    bar1.start(files.length, 0);
+
+    files.forEach((f,idx) => {
+        bar1.update(idx+1);
         const file = path.basename(f);
-        
-        // const hash = md5File.sync(f);
+
         const hash = liteMd5(f);
 
         if (!fileInfos[hash]) {
@@ -47,12 +58,14 @@ glob(searchPahth, { nodir: true, mark: true, realpath: true }, function (er, fil
 
         fileInfos[hash].push({ filepath: f, hash, fileName: file });
     });
+
     for (let i in fileInfos) {
         if (fileInfos[i].length > 1) {
             reduplication.push(fileInfos[i]);
         }
     }
 
+    bar1.stop();
     if (reduplication.length === 0) {
         console.log('No duplicate files!');
     } else {

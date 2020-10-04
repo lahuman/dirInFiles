@@ -38,7 +38,7 @@ const liteMd5 = (filePath) => {
     }
 }
 
-console.log("BEGIN SEARCH FILES");
+console.log("SEARCHING FILES.....");
 const bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
 
 glob(searchPahth, { nodir: true, mark: true, realpath: true }, function (er, files) {
@@ -67,7 +67,10 @@ glob(searchPahth, { nodir: true, mark: true, realpath: true }, function (er, fil
     if (reduplication.length === 0) {
         console.log('No duplicate files!');
     } else {
-        console.log(JSON.stringify(reduplication, null, 4));
+        const fileName = new Date().getTime() +".json"; 
+        console.log('REDUPLICATION FILES COUNT : ' + reduplication.length);
+        console.log('RESULT FILE PATH : ./' + fileName);
+        fs.writeFileSync(fileName, JSON.stringify(reduplication, null, 4));
     }
 
     const hrend = process.hrtime(hrstart);

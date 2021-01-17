@@ -1,10 +1,8 @@
 const fs = require('fs');
 const glob = require('glob');
 const path = require("path");
-const md5File = require('md5-file')
-const md5 = require('md5');
 const cliProgress = require('cli-progress');
-
+const { md5Lite } = require('md5-lite');
 
 
 const fileInfos = {};
@@ -19,24 +17,7 @@ if (!searchPahth) {
 }
 
 
-const BUFFER_SIZE = 100000;
 var hrstart = process.hrtime()
-
-const liteMd5 = (filePath) => {
-    const st = fs.statSync(filePath);
-
-    // 대용량의 경우만 처리
-    if (st.size > (BUFFER_SIZE * 2)) {
-        let firstBuffer = Buffer.alloc(BUFFER_SIZE);
-        let lastBuffer = Buffer.alloc(BUFFER_SIZE);
-        const res = fs.openSync(filePath, 'r');
-        fs.readSync(res, firstBuffer, 0, BUFFER_SIZE, 0);
-        fs.readSync(res, lastBuffer, 0, BUFFER_SIZE, (st.size - BUFFER_SIZE));
-        return md5(firstBuffer + lastBuffer);
-    } else {
-        return md5File.sync(filePath);
-    }
-}
 
 console.log("SEARCHING FILES.....");
 const bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
@@ -47,8 +28,7 @@ glob(searchPahth, { nodir: true, mark: true, realpath: true }, function (er, fil
     files.forEach((f, idx) => {
         bar1.update(idx + 1);
         const file = path.basename(f);
-
-        const hash = liteMd5(f);
+        const hash = md5Lite(f);
 
         if (!fileInfos[hash]) {
             fileInfos[hash] = [];
@@ -67,7 +47,7 @@ glob(searchPahth, { nodir: true, mark: true, realpath: true }, function (er, fil
     if (reduplication.length === 0) {
         console.log('No duplicate files!');
     } else {
-        const fileName = new Date().getTime() +".json"; 
+        const fileName = new Date().getTime() + ".json";
         console.log('REDUPLICATION FILES COUNT : ' + reduplication.length);
         console.log('RESULT FILE PATH : ./' + fileName);
         fs.writeFileSync(fileName, JSON.stringify(reduplication, null, 4));
